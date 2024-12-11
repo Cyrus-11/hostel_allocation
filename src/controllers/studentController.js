@@ -31,7 +31,7 @@ exports.register = async (req, res) => {
     // Check if student already exists by email or phone
     const existingStudent = await Student.findOne({
       where: {
-        [Op.or]: [{ email }, { phone }]
+        [Op.or]: [{ email }, { phone } , {matric_no}]
       }
     });
 
