@@ -62,3 +62,47 @@ Make sure you have the following installed:
 ```bash
 git clone https://github.com/Cyrus-11/hostel_allocation.git
 cd hostel_allocation
+
+
+### **3️⃣ Install Dependencies**
+Run the following command to install all the necessary dependencies:
+
+npm install
+
+
+### **4️⃣ Set Up Environment Variables**
+Create a .env file in the root directory and add the following:
+
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=
+JWT_SECRET=
+PORT=3000
+Note: Replace your_database_password and your_secret_key with your actual database password and a strong secret key.
+
+
+### **5️⃣ Set Up Database**
+Log in to phpMyAdmin or MySQL CLI and create a database called hostel_allocation.
+
+CREATE DATABASE hostel_allocation;
+Run Sequelize migrations (if applicable):
+
+npx sequelize db:migrate
+
+
+### **6️⃣ Run the Application**
+Run the application locally.
+
+npm start
+or use nodemon for development (auto-restarts on changes):
+
+npx nodemon server.js
+
+
+### **7️⃣ Access the Application**
+Visit the URL in your browser or API client (like Postman):
+http://localhost:3000/
+
+
+
