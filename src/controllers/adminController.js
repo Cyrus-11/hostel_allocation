@@ -1,28 +1,78 @@
-const { Student, Payment, RoomAllocation } = require('../models');  // Sequelize models for Students, Payments, and Room Allocations
+const { Student, Payment, RoomAllocation, Admin } = require('../models');  // Sequelize models for Students, Payments, and Room Allocations
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { Op } = require('sequelize');
+
+// Email validation function
+const validateEmail = (email) => {
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return emailRegex.test(email);
+};
+
+// Admin Creation - POST /api/admin/create
+exports.createAdmin = async (req, res) => {
+  const { username, email, password, confirm_password } = req.body;
+
+  try {
+    // Validate email format
+    if (!validateEmail(email)) {
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
+
+    // Check if passwords match
+    if (password !== confirm_password) {
+      return res.status(400).json({ message: 'Passwords do not match' });
+    }
+
+    // Check if admin already exists
+    const existingAdmin = await Admin.findOne({
+      where: {
+        [Op.or]: [{ email }, { username }]
+      }
+    });
+
+    if (existingAdmin) {
+      return res.status(400).json({ message: 'Admin already exists' });
+    }
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create a new admin record
+    const newAdmin = await Admin.create({
+      username,
+      email,
+      password: hashedPassword,
+    });
+
+    // Generate a token for the admin
+    const token = jwt.sign({ id: newAdmin.id, username: newAdmin.username }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    return res.status(201).json({ message: 'Admin created successfully', admin: newAdmin, token });
+  } catch (error) {
+    return res.status(500).json({ message: 'Error creating admin', error: error.message });
+  }
+};
 
 // Admin Login - POST /api/admin/login
 exports.login = async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    // Check if the username is 'admin' (this can be expanded later to use a database of admins)
-    if (username !== 'admin') {
+    const admin = await Admin.findOne({ where: { username } });
+
+    if (!admin) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    // Simulating admin password for simplicity
-    const storedPassword = 'adminpassword';  // This should ideally be hashed in a real application
-
     // Check if password is correct
-    const passwordMatch = bcrypt.compareSync(password, storedPassword);
+    const passwordMatch = await bcrypt.compare(password, admin.password);
     if (!passwordMatch) {
       return res.status(401).json({ message: 'Incorrect password' });
     }
 
     // Create a JWT token for the admin session
-    const token = jwt.sign({ username: 'admin' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ id: admin.id, username: admin.username }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
     return res.status(200).json({ message: 'Admin login successful', token });
   } catch (error) {

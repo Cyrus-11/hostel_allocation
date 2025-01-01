@@ -6,6 +6,9 @@ const isAdmin = require('../middlewares/authMiddleware');
 // Admin login
 router.post('/login', adminController.login);
 
+// Admin creation
+router.post('/create', isAdmin, adminController.createAdmin);
+
 // Admin functionalities
 router.get('/students', isAdmin, adminController.getAllStudents);
 router.get('/payments', isAdmin, adminController.getAllPayments);
