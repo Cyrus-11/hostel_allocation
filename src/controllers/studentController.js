@@ -3,6 +3,11 @@ const jwt = require('jsonwebtoken');
 const { Student, Payment, RoomAllocation } = require('../models');  // Sequelize models
 const { Op } = require('sequelize');
 
+// Email validation function
+const validateEmail = (email) => {
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return emailRegex.test(email);
+};
 
 // Student Registration - POST /api/students/register
 exports.register = async (req, res) => {
@@ -23,6 +28,11 @@ exports.register = async (req, res) => {
   } = req.body;
 
   try {
+    // Validate email format
+    if (!validateEmail(email)) {
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
+
     // Check if passwords match
     if (password !== confirm_password) {
       return res.status(400).json({ message: 'Passwords do not match' });
@@ -31,7 +41,7 @@ exports.register = async (req, res) => {
     // Check if student already exists by email or phone
     const existingStudent = await Student.findOne({
       where: {
-        [Op.or]: [{ email }, { phone } , {matric_no}]
+        [Op.or]: [{ email }, { phone }, { matric_no }]
       }
     });
 
@@ -69,6 +79,11 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
+    // Validate email format
+    if (!validateEmail(email)) {
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
+
     const student = await Student.findOne({ where: { email } });
     
     if (!student) {
@@ -175,5 +190,3 @@ exports.getAvailableRooms = async (req, res) => {
     return res.status(500).json({ message: 'Error fetching available rooms', error: error.message });
   }
 };
-
-  
