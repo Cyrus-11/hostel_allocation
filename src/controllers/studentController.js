@@ -1,13 +1,22 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { Student, Payment, RoomAllocation } = require('../models');  // Sequelize models
+const { Student, Payment, RoomAllocation } = require('../models/db');
 const { Op } = require('sequelize');
+const { sendVerificationEmail } = require('../utils/emailService');
+const { sendPasswordResetEmail } = require('../utils/emailService');
+
 
 // Email validation function
 const validateEmail = (email) => {
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   return emailRegex.test(email);
 };
+
+// Helper function to generate random 6-digit code
+const generateVerificationCode = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
 
 // Student Registration - POST /api/students/register
 exports.register = async (req, res) => {
@@ -28,17 +37,14 @@ exports.register = async (req, res) => {
   } = req.body;
 
   try {
-    // Validate email format
     if (!validateEmail(email)) {
       return res.status(400).json({ message: 'Invalid email format' });
     }
 
-    // Check if passwords match
     if (password !== confirm_password) {
       return res.status(400).json({ message: 'Passwords do not match' });
     }
 
-    // Check if student already exists by email or phone
     const existingStudent = await Student.findOne({
       where: {
         [Op.or]: [{ email }, { phone }, { matric_no }]
@@ -49,10 +55,11 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: 'Student already exists' });
     }
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create a new student record
+    // Generate verification code
+    const verificationCode = generateVerificationCode();
+
     const newStudent = await Student.create({
       matric_no,
       surname,
@@ -66,7 +73,11 @@ exports.register = async (req, res) => {
       phone,
       email,
       password: hashedPassword,
+      verification_code: verificationCode
     });
+
+    // **Send the verification email**
+    await sendVerificationEmail(email, verificationCode);
 
     return res.status(201).json({ message: 'Student registered successfully', student: newStudent });
   } catch (error) {
@@ -79,25 +90,26 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Validate email format
     if (!validateEmail(email)) {
       return res.status(400).json({ message: 'Invalid email format' });
     }
 
     const student = await Student.findOne({ where: { email } });
-    
+
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
     }
 
-    // Compare password with the stored hashed password
     const isMatch = await bcrypt.compare(password, student.password);
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Create a JWT token
-    const token = jwt.sign({ id: student.id, email: student.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign(
+      { id: student.id, email: student.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
 
     return res.status(200).json({ message: 'Login successful', token });
   } catch (error) {
@@ -105,88 +117,133 @@ exports.login = async (req, res) => {
   }
 };
 
-// Email Verification (Account Activation) - POST /api/students/verify-email
+// Email Verification - POST /api/students/verify-email
 exports.verifyEmail = async (req, res) => {
-  const { verification_code } = req.body;
+  const { verification_code } = req.body;  // Only send the code
 
   try {
-    // This is a mock-up: In reality, the verification code would be sent via email
     const student = await Student.findOne({ where: { verification_code } });
 
     if (!student) {
       return res.status(400).json({ message: 'Invalid verification code' });
     }
 
-    // Mark the student as activated
+    // Activate student account and clear the code
     student.status = 'active';
+    student.verification_code = null;
     await student.save();
 
-    return res.status(200).json({ message: 'Email verified and account activated' });
+    return res.status(200).json({ message: 'Email verified successfully' });
   } catch (error) {
     return res.status(500).json({ message: 'Error verifying email', error: error.message });
   }
 };
 
-// Make Payment for Hostel Fees - POST /api/students/pay
-exports.pay = async (req, res) => {
-  const { payment_code } = req.body;
+
+// Password Reset Request - POST /api/students/reset-password
+exports.requestPasswordReset = async (req, res) => {
+  const { email } = req.body;
 
   try {
-    // Simulating payment verification using a mock 6-digit payment code
-    const validPaymentCode = '123456';  // This should be generated dynamically and stored
+    const student = await Student.findOne({ where: { email } });
 
-    if (payment_code !== validPaymentCode) {
-      return res.status(400).json({ message: 'Invalid payment code' });
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
     }
 
-    // Create payment record
-    const payment = await Payment.create({
-      student_id: req.user.id,  // Assumes JWT token is used for authentication
-      payment_type: 'hostel',
-      payment_status: 'paid',
-      payment_code: validPaymentCode
-    });
+    const resetToken = jwt.sign(
+      { id: student.id },
+      process.env.JWT_SECRET,
+      { expiresIn: '15m' }
+    );
 
-    return res.status(200).json({ message: 'Payment successful', payment });
+    // Generate reset link
+    const resetLink = `http://localhost:3000/reset-password/${resetToken}`;
+
+    // Send email with reset link
+    await sendPasswordResetEmail(email, resetLink);
+
+    return res.status(200).json({ message: 'Password reset link sent to email' });
   } catch (error) {
-    return res.status(500).json({ message: 'Error processing payment', error: error.message });
+    return res.status(500).json({ message: 'Error requesting password reset', error: error.message });
   }
 };
 
-// Allocate Room - POST /api/students/allocate-room
-exports.allocateRoom = async (req, res) => {
-  const { hostel, room_number } = req.body;
+// Update Password - POST /api/students/update-password
+exports.updatePassword = async (req, res) => {
+  const { token, new_password, confirm_password } = req.body;
 
   try {
-    // Check if the room is available
-    const room = await RoomAllocation.findOne({ where: { room_number, hostel, status: 'available' } });
+    // Validate new passwords match
+    if (new_password !== confirm_password) {
+      return res.status(400).json({ message: 'Passwords do not match' });
+    }
+
+    // Verify JWT token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const student = await Student.findByPk(decoded.id);
+
+    if (!student) {
+      return res.status(404).json({ message: 'Invalid or expired token' });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(new_password, 10);
+    student.password = hashedPassword;
+    await student.save();
+
+    return res.status(200).json({ message: 'Password updated successfully' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Error updating password', error: error.message });
+  }
+};
+
+// Get Student Profile - GET /api/students/profile
+exports.getProfile = async (req, res) => {
+  try {
+    const student = await Student.findByPk(req.user.id);
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+    return res.status(200).json({ student });
+  } catch (error) {
+    return res.status(500).json({ message: 'Error retrieving profile', error: error.message });
+  }
+};
+
+// Update Student Profile - PUT /api/students/profile
+exports.updateProfile = async (req, res) => {
+  const { phone, department, level } = req.body;
+
+  try {
+    const student = await Student.findByPk(req.user.id);
+
+    student.phone = phone || student.phone;
+    student.department = department || student.department;
+    student.level = level || student.level;
+
+    await student.save();
+    return res.status(200).json({ message: 'Profile updated successfully', student });
+  } catch (error) {
+    return res.status(500).json({ message: 'Error updating profile', error: error.message });
+  }
+};
+
+// Release Room - POST /api/students/release-room
+exports.releaseRoom = async (req, res) => {
+  try {
+    const room = await RoomAllocation.findOne({ where: { student_id: req.user.id } });
 
     if (!room) {
-      return res.status(404).json({ message: 'Room not available' });
+      return res.status(404).json({ message: 'Room allocation not found' });
     }
 
-    // Allocate room to the student
-    room.status = 'occupied';
-    room.student_id = req.user.id;  // Assumes JWT token is used for authentication
+    room.status = 'available';
+    room.student_id = null;
     await room.save();
 
-    return res.status(200).json({ message: 'Room allocated successfully', room });
+    return res.status(200).json({ message: 'Room released successfully' });
   } catch (error) {
-    return res.status(500).json({ message: 'Error allocating room', error: error.message });
-  }
-};
-
-// Get All Available Rooms for Hostel - GET /api/students/rooms/available
-exports.getAvailableRooms = async (req, res) => {
-  const { hostel } = req.query;
-
-  try {
-    const rooms = await RoomAllocation.findAll({
-      where: { hostel, status: 'available' }
-    });
-
-    return res.status(200).json({ availableRooms: rooms });
-  } catch (error) {
-    return res.status(500).json({ message: 'Error fetching available rooms', error: error.message });
+    return res.status(500).json({ message: 'Error releasing room', error: error.message });
   }
 };

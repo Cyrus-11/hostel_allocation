@@ -95,7 +95,11 @@ const Student = sequelize.define('Student', {
   status: { 
     type: DataTypes.ENUM('active', 'inactive'), 
     defaultValue: 'inactive' 
-  }
+  },
+  verification_code: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
 }, { 
   tableName: 'students',
   timestamps: true, // Adds createdAt and updatedAt columns

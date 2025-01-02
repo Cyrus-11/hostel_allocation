@@ -1,4 +1,4 @@
-const { Student, Payment, RoomAllocation, Admin } = require('../models');  // Sequelize models for Students, Payments, and Room Allocations
+const { Student, Payment, RoomAllocation, Admin } = require('../models/db');  // Sequelize models for Students, Payments, and Room Allocations
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
