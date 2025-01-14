@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Hostel Allocation System</title>
+    <link rel="stylesheet" href="../css/reg.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="navbar-brand">Hostel Allocation System</a>
+            <div class="nav-links">
+                <a href="Reg.html">Register</a>
+                <a href="Log.html">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card" style="max-width: 800px; margin: 50px auto;">
+            <h2 style="margin-bottom: 20px;">Student Registration</h2>
+            <form id="registrationForm">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-group">
+                        <label>Matric Number</label>
+                        <input type="text" id="matricNo" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Surname</label>
+                        <input type="text" id="surname" required>
+                    </div>
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <input type="text" id="firstname" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Other Name</label>
+                        <input type="text" id="othername">
+                    </div>
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <select id="gender" required>
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>College</label>
+                        <select id="college" required onchange="updateDepartments()">
+                            <option value="">Select College</option>
+                            <option value="College of ICT">College of ICT</option>
+                            <option value="College of Sciences">College of Sciences</option>
+                            <option value="College of Law">College of Law</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Department</label>
+                        <select id="department" required>
+                            <option value="">Select Department</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Level</label>
+                        <select id="level" required>
+                            <option value="">Select Level</option>
+                            <option value="100">100 Level</option>
+                            <option value="200">200 Level</option>
+                            <option value="300">300 Level</option>
+                            <option value="400">400 Level</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Session</label>
+                        <input type="text" id="session" value="2024/2025" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" id="phone" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="password" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password</label>
+                        <input type="password" id="confirmPassword" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 20px;">Register</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Dynamically update departments based on the selected college
+        function updateDepartments() {
+            const college = document.getElementById('college').value;
+            const departmentSelect = document.getElementById('department');
+            
+            // Clear current department options
+            departmentSelect.innerHTML = '<option value="">Select Department</option>';
+    
+            const departments = {
+                'College of ICT': ['Computer Science', 'Information Technology', 'Cyber Security'],
+                'College of Sciences': ['Physics', 'Chemistry', 'Biology'],
+                'College of Law': ['Civil Law', 'Criminal Law', 'International Law']
+            };
+    
+            // Check if the selected college exists in the departments object
+            if (college in departments) {
+                // Add department options based on the selected college
+                departments[college].forEach(dept => {
+                    const option = document.createElement('option');
+                    option.value = dept;
+                    option.textContent = dept;
+                    departmentSelect.appendChild(option);
+                });
+            }
+        }
+    
+        // Handle form submission and API call
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+    
+            const submitButton = document.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+    
+            const matric_no = document.getElementById('matricNo').value;
+            const surname = document.getElementById('surname').value;
+            const firstname = document.getElementById('firstname').value;
+            const othername = document.getElementById('othername').value;
+            const gender = document.getElementById('gender').value;
+            const college = document.getElementById('college').value;
+            const department = document.getElementById('department').value;
+            const level = document.getElementById('level').value;
+            const session = document.getElementById('session').value;
+            const phone = document.getElementById('phone').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirm_password = document.getElementById('confirmPassword').value;
+    
+            // Trim and validate passwords
+            if (password !== confirm_password) {
+                alert('Passwords do not match. Please check and try again.');
+                submitButton.disabled = false;
+                return;
+            }
+    
+            const data = {
+                matric_no: matric_no,
+                surname: surname,
+                firstname: firstname,
+                othername: othername,
+                gender: gender,
+                college: college,
+                department: department,
+                level: level,
+                session: session,
+                phone: phone,
+                email: email,
+                password: password,
+                confirm_password: confirm_password
+            };
+    
+            fetch('http://localhost:3000/api/students/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert('Registration successful!');
+                    window.location.href = 'digit.html';
+                } else {
+                    alert('Registration failed: ' + result.message);
+                }
+                submitButton.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred during registration.');
+                submitButton.disabled = false;
+            });
+        });
+    </script>
+    
+</body>
+</html>

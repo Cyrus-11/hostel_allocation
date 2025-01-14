@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification - Hostel Allocation System</title>
+    <link rel="stylesheet" href="../css/Activate.css">
+    
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="navbar-brand">Hostel Allocation System</a>
+        </div>
+    </nav>
+
+    <div class="activation-container">
+        <div class="activation-card">
+            <!-- Success Icon -->
+            <div class="success-icon">
+                ✓
+            </div>
+
+            <!-- Success Message -->
+            <div class="success-message">
+                Email Verification Successful!
+            </div>
+
+            <!-- Details -->
+            <div class="details">
+                Your email has been successfully verified. You can now log in to your account and proceed with hostel allocation.
+            </div>
+
+            <!-- Login Button -->
+            <button onclick="window.location.href='Log.html'" class="login-button">
+                Proceed to Login
+            </button>
+
+            <!-- Additional Information -->
+            <div class="additional-info">
+                Having trouble? <a href="#" class="support-link">Contact Support</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alternative States (hidden by default) -->
+    <div class="activation-container" style="display: none;">
+        <div class="activation-card">
+            <div class="success-icon" style="background: #f8d7da;">
+                ⚠️
+            </div>
+            <div class="success-message" style="color: #721c24;">
+                Verification Link Expired
+            </div>
+            <div class="details">
+                The verification link has expired. Please request a new verification email.
+            </div>
+            <button onclick="requestNewVerification()" class="login-button" style="background: #dc3545;">
+                Request New Link
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Function to request new verification email
+        function requestNewVerification() {
+            alert('New verification email has been sent to your registered email address.');
+        }
+
+        // Optional: Add some animation when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelector('.activation-card').style.opacity = '0';
+            setTimeout(() => {
+                document.querySelector('.activation-card').style.opacity = '1';
+                document.querySelector('.activation-card').style.transition = 'opacity 0.5s ease-in';
+            }, 100);
+        });
+    </script>
+</body>
+</html>

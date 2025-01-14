@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Activation - Hostel Allocation System</title>
+    <link rel="stylesheet" href="../css/digit.css">
+    <style>
+        body {
+            background-color: #f4f6f9;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .verification-container {
+            max-width: 500px;
+            margin: 50px auto;
+            text-align: center;
+        }
+
+        .verification-card {
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .verification-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .verification-subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .code-input-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .code-input {
+            width: 50px;
+            height: 60px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 24px;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .code-input:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .code-input.filled {
+            border-color: #2ecc71;
+        }
+
+        .verify-button {
+            background: #3498db;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            width: 100%;
+            max-width: 200px;
+            margin-bottom: 20px;
+        }
+
+        .verify-button:hover {
+            background: #2980b9;
+        }
+
+        .verify-button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .timer {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .resend-link {
+            color: #3498db;
+            text-decoration: none;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .resend-link:hover {
+            text-decoration: underline;
+        }
+
+        .resend-link.disabled {
+            color: #bdc3c7;
+            cursor: not-allowed;
+            text-decoration: none;
+        }
+
+        /* Error state */
+        .code-input.error {
+            border-color: #e74c3c;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* Loading animation */
+        .loading {
+            display: none;
+            margin: 0 auto;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive design */
+        @media (max-width: 600px) {
+            .verification-container {
+                margin: 20px;
+            }
+
+            .verification-card {
+                padding: 20px;
+            }
+
+            .code-input {
+                width: 40px;
+                height: 50px;
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="navbar-brand">Hostel Allocation System</a>
+        </div>
+    </nav>
+
+    <div class="verification-container">
+        <div class="verification-card">
+            <!-- Title -->
+            <div class="verification-title">
+                Enter Verification Code
+            </div>
+
+            <!-- Subtitle -->
+            <div class="verification-subtitle">
+                Please enter the 6-digit verification code to activate you account
+            </div>
+
+            <!-- Code Input -->
+            <div class="code-input-group">
+                <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+            </div>
+
+            <!-- Timer -->
+            <div class="timer">
+                Code expires in: <span id="countdown">05:00</span>
+            </div>
+
+            <!-- Verify Button -->
+            <button class="verify-button" id="verifyButton" disabled>
+                Activate Account
+            </button>
+
+            <!-- Loading indicator -->
+            <div class="loading" id="loadingIndicator"></div>
+
+            <!-- Resend Code -->
+            <div>
+                Didn't receive the code? 
+                <a href="#" class="resend-link disabled" id="resendLink">
+                    Resend Code
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Handle input fields
+        const inputs = document.querySelectorAll('.code-input');
+        const verifyButton = document.getElementById('verifyButton');
+        const resendLink = document.getElementById('resendLink');
+        let verification_code = '';
+
+        inputs.forEach((input, index) => {
+            // Handle input
+            input.addEventListener('input', (e) => {
+                // Allow only numbers
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+
+                if (e.target.value) {
+                    input.classList.add('filled');
+                    // Move to next input
+                    if (index < inputs.length - 1) {
+                        inputs[index + 1].focus();
+                    }
+                } else {
+                    input.classList.remove('filled');
+                }
+
+                // Update verification code
+                verification_code = Array.from(inputs).map(input => input.value).join('');
+                verifyButton.disabled = verification_code.length !== 6;
+            });
+
+            // Handle backspace
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+        });
+
+        // Countdown timer
+        let timeLeft = 300; // 5 minutes in seconds
+        const countdownDisplay = document.getElementById('countdown');
+
+        const countdown = setInterval(() => {
+            timeLeft--;
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            countdownDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                resendLink.classList.remove('disabled');
+            }
+        }, 1000);
+
+        // Verify button click handler
+        verifyButton.addEventListener('click', () => {
+            verifyButton.disabled = true;
+            document.getElementById('loadingIndicator').style.display = 'block';
+
+            // Send the verification code to the backend for verification
+            fetch('http://localhost:3000/api/students/verifyEmail', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ verification_code: verification_code })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loadingIndicator').style.display = 'none';
+                if (data.success) {
+                    // Redirect on successful verification
+                    window.location.href = 'Activate.html';
+                } else {
+                    // Show error if code is invalid
+                    inputs.forEach(input => input.classList.add('error'));
+                    inputs[0].focus();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('loadingIndicator').style.display = 'none';
+                alert('An error occurred. Please try again later.');
+            });
+        });
+
+        // Resend link click handler
+        resendLink.addEventListener('click', (e) => {
+            if (resendLink.classList.contains('disabled')) {
+                e.preventDefault();
+                return;
+            }
+
+            // Reset timer
+            timeLeft = 300;
+            resendLink.classList.add('disabled');
+            
+            // Simulate sending new code (You should trigger a backend API call here)
+            alert('New verification code has been sent.');
+        });
+    </script>
+</body>
+</html>

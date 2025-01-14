@@ -3,8 +3,10 @@ const express = require('express');
 const sequelize = require('./src/config/database');
 const studentRoutes = require('./src/routes/studentRoutes');
 const adminRoutes = require('./src/routes/adminRoutes');
+const cors = require('cors');
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 app.use('/api/students', studentRoutes);
 app.use('/api/admins', adminRoutes)

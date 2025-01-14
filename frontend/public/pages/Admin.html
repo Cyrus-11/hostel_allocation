@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Hostel Management System</title>
+    <link rel="stylesheet" href="../css/Admin.css">
+    
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2>Admin Panel</h2>
+            <div class="sidebar-menu">
+                <div class="menu-item active" onclick="showTab('dashboard')">
+                    <i>📊</i> Dashboard
+                </div>
+                <div class="menu-item" onclick="showTab('students')">
+                    <i>👥</i> Students
+                </div>
+                <div class="menu-item" onclick="showTab('hostels')">
+                    <i>🏢</i> Hostels
+                </div>
+                <div class="menu-item" onclick="showTab('payments')">
+                    <i>💰</i> Payments
+                </div>
+                <div class="menu-item" onclick="showTab('reports')">
+                    <i>📈</i> Reports
+                </div>
+                <div class="menu-item" onclick="window.location.href='Adminlog.html'">
+                    <i>🚪</i> Logout
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-container active">
+                <h2>Dashboard Overview</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Students</h3>
+                        <!-- Replace with actual student count -->
+                        <div class="stat-value">1,245</div>
+                        <!-- Replace with actual student count -->
+                        <div>↑ 12% from last month</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Room Occupancy</h3>
+                        <!-- Replace with actual occupancy percentage -->
+                        <div class="stat-value">78%</div>
+                        <!-- Replace with actual Number Of Occupied Rooms -->
+                        <div>312/400 rooms occupied</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Revenue</h3>
+                        <!-- Replace with actual total revenue -->
+                        <div class="stat-value">₦12.4M</div>
+                        <div>This academic session</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Pending Allocations</h3>
+                        <!-- Replace with actual number of pending allocations -->
+                        <div class="stat-value">45</div>
+                        <div>Requires attention</div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-card">
+                        <h3>Occupancy Trends</h3>
+                        <canvas id="occupancyChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Payment Statistics</h3>
+                        <canvas id="paymentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Students Tab -->
+            <div id="students" class="tab-container">
+                <h2>Student Management</h2>
+                <div class="search-bar">
+                    <input type="text" placeholder="Search students...">
+                    <button class="btn btn-primary">Search</button>
+                </div>
+                <div class="data-table">
+                    <table style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th>Matric Number</th>
+                                <th>Name</th>
+                                <th>Department</th>
+                                <th>Room</th>
+                                <th>Payment Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <!--matric number-->
+                                <td>CSC/2024/001</td>
+                                <!--student name-->
+                                <td>Oluwayoyin Sola</td>
+                                <!--student department-->
+                                <td>Computer Science</td>
+                                <!--student room-->
+                                <td>36</td>
+                                <td><span class="status-badge status-paid">Paid</span></td>
+                                <td>
+                                    <button class="btn btn-primary">Edit</button>
+                                    <button class="btn" style="background: #e74c3c; color: white;">Delete</button>
+                                </td>
+                            </tr>
+                            <!-- Add more rows as needed -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Hostels Tab -->
+            <div id="hostels" class="tab-container">
+                <h2>Hostel Management</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Hostel A (Male)</h3>
+                        <div class="stat-value">156/200</div>
+                        <div>Rooms Occupied</div>
+                        <button class="btn btn-primary" style="margin-top: 10px;">Manage Rooms</button>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Hostel B (Female)</h3>
+                        <div class="stat-value">156/200</div>
+                        <div>Rooms Occupied</div>
+                        <button class="btn btn-primary" style="margin-top: 10px;">Manage Rooms</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payments Tab -->
+            <div id="payments" class="tab-container">
+                <h2>Payment Management</h2>
+                <div class="search-bar">
+                    <input type="text" placeholder="Search payments...">
+                    <button class="btn btn-primary">Search</button>
+                </div>
+                <div class="data-table">
+                    <table style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th>Payment ID</th>
+                                <th>Student</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <!--payment id-->
+                                <td></td>
+                                <!--student name-->
+                                <td></td>
+                                <!--payment type-->
+                                <td></td>
+                                <!--payment amount-->
+                                <td></td>
+                                <!--payment date-->
+                                <td></td>
+                                <td><span class="status-badge status-paid">Verified</span></td>
+                            </tr>
+                            <!-- Add more rows as needed -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Reports Tab -->
+            <div id="reports" class="tab-container">
+                <h2>Reports & Analytics</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Generate Reports</h3>
+                        <div style="margin: 15px 0;">
+                            <select class="form-group" style="width: 100%; margin-bottom: 10px;">
+                                <option>Occupancy Report</option>
+                                <option>Payment Report</option>
+                                <option>Student Distribution</option>
+                            </select>
+                            <button class="btn btn-primary" style="width: 100%;">Generate Report</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-container').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabId).classList.add('active');
+            
+            // Update menu item active state
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+        }
+
+        // Sample charts (using placeholder data)
+        // In a real application, you would use a charting library like Chart.js
+        const occupancyChart = document.getElementById('occupancyChart');
+        const paymentChart = document.getElementById('paymentChart');
+        
+        // Add your chart initialization code here
+    </script>
+</body>
+</html>

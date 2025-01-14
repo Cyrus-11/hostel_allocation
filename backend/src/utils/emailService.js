@@ -22,7 +22,7 @@ exports.sendVerificationEmail = async (email, verificationCode) => {
         <h1>Email Verification</h1>
         <p>Thank you for registering. Use the code below to verify your email:</p>
         <h2>${verificationCode}</h2>
-        <p>This code expires in 15 minutes. Please do not share it.</p>
+        <p>This code expires in 5 minutes. Please do not share it.</p>
       `
     };
 

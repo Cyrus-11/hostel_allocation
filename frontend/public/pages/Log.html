@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Hostel Allocation System</title>
+    <link rel="stylesheet" href="../css/log.css">
+    <link rel="stylesheet" href="../css/log2.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="navbar-brand">Hostel Allocation System</a>
+            <div class="nav-links">
+                <a href="Reg.html">Register</a>
+                <a href="Log.html">Login</a>
+                <a href="Adminlog.html">Admin</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card" style="max-width: 500px; margin: 50px auto;">
+            <h2 style="margin-bottom: 20px;">Login</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+            </form>
+            <p style="margin-top: 15px; text-align: center;">
+                <a href="Forget.html" style="text-decoration: none; color: #3498db;">Forgot Password?</a>
+            </p>
+            <p style="margin-top: 15px; text-align: center;">
+                Don't have an account? <a href="Reg.html">Register here</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("loginForm").addEventListener("submit", function(e) {
+            e.preventDefault(); // Prevent the default form submission
+
+            // Get form data
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value.trim();
+
+            // Check if email and password are not empty
+            if (!email || !password) {
+                alert("Please fill out both fields.");
+                return;
+            }
+
+            // Create an object with form data
+            const loginData = { email, password };
+
+            // Send POST request to the backend
+            fetch("http://localhost:3000/api/students/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(loginData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === 'Login successful') {
+                    // Store the token in localStorage for later use
+                    localStorage.setItem("jwt_token", data.token);
+
+                    // Redirect to the profile page
+                    window.location.href = "profil.html";
+                } else {
+                    // Handle login failure
+                    alert(data.message || "Login failed. Please check your credentials.");
+                }
+            })
+            .catch(error => {
+                // Handle network or server errors
+                console.error("Error:", error);
+                alert("An error occurred. Please try again.");
+            });
+        });
+    </script>
+</body>
+</html>

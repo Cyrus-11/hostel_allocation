@@ -36,6 +36,8 @@ exports.register = async (req, res) => {
     confirm_password
   } = req.body;
 
+  console.log('Received data:', req.body)
+
   try {
     if (!validateEmail(email)) {
       return res.status(400).json({ message: 'Invalid email format' });
@@ -52,7 +54,7 @@ exports.register = async (req, res) => {
     });
 
     if (existingStudent) {
-      return res.status(400).json({ message: 'Student already exists' });
+      return res.status(400).json({ success: false, message: 'Student already exists' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -79,7 +81,7 @@ exports.register = async (req, res) => {
     // **Send the verification email**
     await sendVerificationEmail(email, verificationCode);
 
-    return res.status(201).json({ message: 'Student registered successfully', student: newStudent });
+    return res.status(201).json({ success: true, message: 'Student registered successfully', student: newStudent });
   } catch (error) {
     return res.status(500).json({ message: 'Error registering student', error: error.message });
   }
@@ -89,31 +91,56 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   const { email, password } = req.body;
 
-  try {
-    if (!validateEmail(email)) {
-      return res.status(400).json({ message: 'Invalid email format' });
-    }
+  // 1. Validate email and password
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required' });
+  }
 
+  if (!validateEmail(email)) {
+    return res.status(400).json({ message: 'Invalid email format' });
+  }
+
+  try {
+    // 2. Find student by email
     const student = await Student.findOne({ where: { email } });
 
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
     }
 
+    // 3. Check if account is activated
+    if (student.status !== 'active') {
+      return res.status(403).json({ message: 'Account not activated. Please verify your email.' });
+    }
+
+    // 4. Compare passwords
     const isMatch = await bcrypt.compare(password, student.password);
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+    // 5. Generate JWT token
     const token = jwt.sign(
       { id: student.id, email: student.email },
       process.env.JWT_SECRET,
-      { expiresIn: '1h' }
+      { expiresIn: process.env.JWT_EXPIRES_IN || '1h' }  // Expiry from .env or default 1h
     );
 
-    return res.status(200).json({ message: 'Login successful', token });
+    // 6. Send response (exclude sensitive info)
+    const { password: _, ...studentData } = student.toJSON();  // Remove password from response
+
+    return res.status(200).json({
+      success: true,
+      message: 'Login successful',
+      token,
+      student: studentData
+    });
   } catch (error) {
-    return res.status(500).json({ message: 'Error logging in', error: error.message });
+    return res.status(500).json({
+      success: false,
+      message: 'Error logging in',
+      error: error.message
+    });
   }
 };
 
@@ -122,10 +149,20 @@ exports.verifyEmail = async (req, res) => {
   const { verification_code } = req.body;  // Only send the code
 
   try {
+    // Find the student using the verification code
     const student = await Student.findOne({ where: { verification_code } });
 
     if (!student) {
       return res.status(400).json({ message: 'Invalid verification code' });
+    }
+
+    // Check if the verification code is expired (5 minutes = 300000ms)
+    const codeCreatedAt = new Date(student.verification_code_created_at);
+    const currentTime = new Date();
+    const timeDifference = currentTime - codeCreatedAt;
+
+    if (timeDifference > 300000) {  // 5 minutes in milliseconds
+      return res.status(400).json({ message: 'Verification code has expired' });
     }
 
     // Activate student account and clear the code
@@ -133,11 +170,12 @@ exports.verifyEmail = async (req, res) => {
     student.verification_code = null;
     await student.save();
 
-    return res.status(200).json({ message: 'Email verified successfully' });
+    return res.status(200).json({ success: true, message: 'Email verified successfully' });
   } catch (error) {
-    return res.status(500).json({ message: 'Error verifying email', error: error.message });
+    return res.status(500).json({ success: false, message: 'Error verifying email', error: error.message });
   }
 };
+
 
 
 // Password Reset Request - POST /api/students/reset-password
@@ -201,15 +239,50 @@ exports.updatePassword = async (req, res) => {
 // Get Student Profile - GET /api/students/profile
 exports.getProfile = async (req, res) => {
   try {
+    // Fetch the student using the ID from the authenticated user (req.user.id)
     const student = await Student.findByPk(req.user.id);
+
+    // Check if the student exists
     if (!student) {
-      return res.status(404).json({ message: 'Student not found' });
+      return res.status(404).json({
+        success: false,
+        message: 'Student not found',
+        student: null
+      });
     }
-    return res.status(200).json({ student });
+
+    // Remove sensitive information (password) from the response
+    const { password, ...studentData } = student.toJSON();
+
+    // Send a successful response with the student profile, formatted for the frontend
+    return res.status(200).json({
+      success: true,
+      message: 'Profile retrieved successfully',
+      student: {
+        surname: studentData.surname,
+        firstname: studentData.firstname,
+        othername: studentData.othername,
+        email: studentData.email,
+        phone: studentData.phone,
+        gender: studentData.gender,
+        college: studentData.college,
+        department: studentData.department,
+        level: studentData.level,
+        session: studentData.session,
+        status: studentData.status
+      }
+    });
   } catch (error) {
-    return res.status(500).json({ message: 'Error retrieving profile', error: error.message });
+    // Handle errors that occur during the profile retrieval
+    return res.status(500).json({
+      success: false,
+      message: 'Error retrieving profile',
+      error: error.message
+    });
   }
 };
+
+
 
 // Update Student Profile - PUT /api/students/profile
 exports.updateProfile = async (req, res) => {

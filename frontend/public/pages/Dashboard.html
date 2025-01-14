@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - Hostel Allocation System</title>
+    <link rel="stylesheet" href="../css/dash.css">
+   
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="Dashboard.html" class="navbar-brand">Hostel Allocation System</a>
+            <div class="nav-links">
+                <a href="#" id="studentName">Welcome</a>
+                <a href="Log.html" class="btn" style="background: #e74c3c; padding: 5px 15px;">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="dashboard-grid">
+            <!-- Left Sidebar - Profile Section -->
+            <div class="profile-section">
+                <div class="profile-image">
+                    👤
+                </div>
+                
+                <div class="profile-info">
+                    <label>Matric Number</label>
+                    <span>CSC/2024/001</span>
+                </div>
+                
+                <div class="profile-info">
+                    <label>Full Name</label>
+                    <span>Oluwayoyin sola</span>
+                </div>
+                
+                <div class="profile-info">
+                    <label>Department</label>
+                    <span>Computer Science</span>
+                </div>
+                
+                <div class="profile-info">
+                    <label>Level</label>
+                    <span>300</span>
+                </div>
+                
+                <div class="profile-info">
+                    <label>Email</label>
+                    <span>Oluwayoyin@student.edu</span>
+                </div>
+                
+                <div class="profile-info">
+                    <label>Phone</label>
+                    <span>+234123456789</span>
+                </div>
+                
+                <button class="btn btn-logout" onclick="window.location.href='Log.html'">
+                    Logout
+                </button>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="main-content">
+                <!-- School Fees Status -->
+                <div class="status-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3>School Fees</h3>
+                        <span class="status-indicator status-pending" id="schoolFeeStatus">Pending</span>
+                    </div>
+                    <div class="payment-amount">₦50,000</div>
+                    <p style="margin-bottom: 15px;">Academic Session: 2024/2025</p>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="showPaymentModal('school')" id="paySchoolFeeBtn">
+                            Pay School Fees
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Hostel Fees Status -->
+                <div class="status-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3>Hostel Fees</h3>
+                        <span class="status-indicator status-pending" id="hostelFeeStatus">Pending</span>
+                    </div>
+                    <div class="payment-amount">₦30,000</div>
+                    <p style="margin-bottom: 15px;">Academic Session: 2024/2025</p>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="showPaymentModal('hostel')" id="payHostelFeeBtn" disabled>
+                            Pay Hostel Fees
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Hostel Booking Status -->
+                <div class="status-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3>Hostel Booking</h3>
+                        <span class="status-indicator status-pending">Not Allocated</span>
+                    </div>
+                    <p style="margin: 15px 0;">Complete your payments to proceed with room allocation</p>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="window.location.href='select.html'" id="bookHostelBtn" disabled>
+                            Book Hostel Room
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);">
+        <div class="card" style="max-width: 400px; margin: 100px auto;">
+            <h3 id="paymentModalTitle">Payment Verification</h3>
+            <p style="margin: 15px 0;">Enter the 6-digit payment verification code</p>
+            <div class="form-group">
+                <input type="text" placeholder="Enter 6-digit code" maxlength="6" pattern="\d{6}" 
+                       style="font-size: 24px; letter-spacing: 5px; text-align: center;">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-primary" onclick="verifyPayment()">Verify Payment</button>
+                <button class="btn" onclick="closePaymentModal()" style="background: #e74c3c; color: white;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPaymentType = '';
+
+        function showPaymentModal(type) {
+            currentPaymentType = type;
+            document.getElementById('paymentModal').style.display = 'block';
+            document.getElementById('paymentModalTitle').textContent = 
+                type === 'school' ? 'School Fees Payment' : 'Hostel Fees Payment';
+        }
+
+        function closePaymentModal() {
+            document.getElementById('paymentModal').style.display = 'none';
+        }
+
+        function verifyPayment() {
+            if (currentPaymentType === 'school') {
+                document.getElementById('schoolFeeStatus').className = 'status-indicator status-paid';
+                document.getElementById('schoolFeeStatus').textContent = 'Paid';
+                document.getElementById('paySchoolFeeBtn').disabled = true;
+                document.getElementById('payHostelFeeBtn').disabled = false;
+            } else {
+                document.getElementById('hostelFeeStatus').className = 'status-indicator status-paid';
+                document.getElementById('hostelFeeStatus').textContent = 'Paid';
+                document.getElementById('payHostelFeeBtn').disabled = true;
+                document.getElementById('bookHostelBtn').disabled = false;
+            }
+            closePaymentModal();
+        }
+    </script>
+</body>
+</html>

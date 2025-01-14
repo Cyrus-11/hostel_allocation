@@ -22,18 +22,27 @@ const isAdmin = (req, res, next) => {
 
 // Middleware to verify any user (general authentication)
 const verifyToken = (req, res, next) => {
+  // Extract the token from the Authorization header
   const token = req.headers.authorization?.split(' ')[1];
+
+  // If no token is provided, respond with Unauthorized status
   if (!token) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;  // Attach user info to req
+  // Verify the token
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    // Handle any errors during token verification
+    if (err) {
+      return res.status(403).json({ message: 'Invalid or expired token' });
+    }
+
+    // Attach the decoded token data (user info) to the request object
+    req.user = decoded;
+
+    // Proceed to the next middleware or route handler
     next();
-  } catch (error) {
-    return res.status(403).json({ message: 'Invalid or expired token' });
-  }
+  });
 };
 
 // Export both functions properly

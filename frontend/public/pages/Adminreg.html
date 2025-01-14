@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Registration - Hostel Management System</title>
+    <link rel="stylesheet" href="static/css/style.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .register-container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header-icon {
+            width: 80px;
+            height: 80px;
+            background: #e1f0ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 40px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 38px;
+            cursor: pointer;
+            color: #95a5a6;
+        }
+
+        .requirements {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+
+        .requirement {
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .requirement.met {
+            color: #2ecc71;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .submit-btn:hover {
+            background: #2980b9;
+        }
+
+        .submit-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #e74c3c;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .loading {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="card">
+            <div class="header">
+                <div class="header-icon">
+                    👤
+                </div>
+                <h1 style="color: #2c3e50; margin-bottom: 10px;">Admin Registration</h1>
+                <p style="color: #7f8c8d;">Create a new administrator account</p>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+
+            <form id="adminRegisterForm" onsubmit="return handleSubmit(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">First Name</label>
+                        <input type="text" id="firstName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" id="lastName" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" required onkeyup="validateEmail(this)">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" required pattern="[0-9]{11}">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" required minlength="5">
+                    </div>
+                    <div class="form-group">
+                        <label for="adminRole">Admin Role</label>
+                        <select id="adminRole" required>
+                            <option value="">Select Role</option>
+                            <option value="super">Male Portal Head</option>
+                            <option value="super">Female Portal Head</option>
+                            <option value="hostel">Male Portal</option>
+                            <option value="hostel">Female Portal</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" required onkeyup="checkPasswordStrength(this.value)">
+                        <span class="password-toggle" onclick="togglePassword('password')">👁️</span>
+                        <div class="requirements">
+                            <div class="requirement" id="lengthReq">At least 8 characters</div>
+                            <div class="requirement" id="upperReq">One uppercase letter</div>
+                            <div class="requirement" id="lowerReq">One lowercase letter</div>
+                            <div class="requirement" id="numberReq">One number</div>
+                            <div class="requirement" id="specialReq">One special character</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input type="password" id="confirmPassword" required onkeyup="checkPasswordMatch()">
+                        <span class="password-toggle" onclick="togglePassword('confirmPassword')">👁️</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn" disabled>
+                    <a href="digit.html" style="text-decoration: none; color: white;">
+                    <span>Create Account</span>
+                    <div class="loading" id="loadingSpinner"></div>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function validateEmail(input) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(input.value);
+        }
+
+        function checkPasswordStrength(password) {
+            const requirements = {
+                lengthReq: password.length >= 8,
+                upperReq: /[A-Z]/.test(password),
+                lowerReq: /[a-z]/.test(password),
+                numberReq: /[0-9]/.test(password),
+                specialReq: /[^A-Za-z0-9]/.test(password)
+            };
+
+            // Update requirement visual indicators
+            Object.keys(requirements).forEach(req => {
+                const element = document.getElementById(req);
+                if (requirements[req]) {
+                    element.classList.add('met');
+                } else {
+                    element.classList.remove('met');
+                }
+            });
+
+            // Enable submit if all requirements are met and passwords match
+            checkPasswordMatch();
+        }
+
+        function checkPasswordMatch() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const submitBtn = document.getElementById('submitBtn');
+
+            // Check if all requirements are met
+            const allRequirementsMet = [
+                password.length >= 8,
+                /[A-Z]/.test(password),
+                /[a-z]/.test(password),
+                /[0-9]/.test(password),
+                /[^A-Za-z0-9]/.test(password)
+            ].every(Boolean);
+
+            submitBtn.disabled = !(allRequirementsMet && password === confirmPassword);
+        }
+
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const toggle = input.nextElementSibling;
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                toggle.textContent = '👁️‍🗨️';
+            } else {
+                input.type = 'password';
+                toggle.textContent = '👁️';
+            }
+        }
+
+        function handleSubmit(event) {
+            event.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const errorMessage = document.getElementById('errorMessage');
+
+            // Show loading state
+            submitBtn.disabled = true;
+            loadingSpinner.style.display = 'block';
+            errorMessage.style.display = 'none';
+
+            // Simulate API call
+            setTimeout(() => {
+                // Successful registration
+                window.location.href = 'Adminlog.html';
+            }, 2000);
+
+            return false;
+        }
+    </script>
+</body>
+</html>
